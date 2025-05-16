@@ -1,6 +1,9 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'providers/user_provider.dart';
+import 'screens/user_list_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +15,13 @@ void main() {
     runApp(
       DevicePreview(
         enabled: false,
-        builder: (context) => MyApp(), // Wrap your app
+        builder:
+            (context) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => UserProvider()),
+              ],
+              child: const MyApp(),
+            ),
       ),
     );
   });
@@ -21,16 +30,15 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'User Fetcher',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const UserListScreen(),
     );
   }
 }
