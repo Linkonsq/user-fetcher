@@ -26,7 +26,6 @@ class _UserListScreenState extends State<UserListScreen> {
         context.read<UserProvider>().fetchUsers();
       } else {
         context.read<UserProvider>().loadCachedUsers();
-        _showOfflineToast();
       }
     });
 
@@ -40,26 +39,6 @@ class _UserListScreenState extends State<UserListScreen> {
         }
       }
     });
-  }
-
-  void _showOfflineToast() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('You are offline. Showing cached data.'),
-        backgroundColor: Colors.orange,
-        duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'Retry',
-          textColor: Colors.white,
-          onPressed: () async {
-            await _checkConnectivity();
-            if (_isConnected) {
-              context.read<UserProvider>().fetchUsers();
-            }
-          },
-        ),
-      ),
-    );
   }
 
   Future<void> _checkConnectivity() async {
@@ -78,7 +57,6 @@ class _UserListScreenState extends State<UserListScreen> {
         context.read<UserProvider>().fetchUsers();
       } else {
         context.read<UserProvider>().loadCachedUsers();
-        _showOfflineToast();
       }
     });
   }
@@ -94,23 +72,15 @@ class _UserListScreenState extends State<UserListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Users'),
+        //leading: Icon(Icons.wifi_off),
         actions: [
-          Consumer<UserProvider>(
-            builder: (context, userProvider, child) {
-              if (!_isConnected) {
-                return IconButton(
-                  icon: const Icon(Icons.wifi_off),
-                  onPressed: () async {
-                    // await _checkConnectivity();
-                    // if (_isConnected) {
-                    //   userProvider.fetchUsers();
-                    // }
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+          if (!_isConnected)
+            IconButton(
+              icon: const Icon(Icons.wifi_off),
+              onPressed: () {
+                //_checkConnectivity();
+              },
+            ),
         ],
       ),
       body: Consumer<UserProvider>(
@@ -213,12 +183,31 @@ class _UserListScreenState extends State<UserListScreen> {
               if (!_isConnected)
                 Container(
                   color: Colors.orange,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: const Center(
-                    child: Text(
-                      'Offline Mode - Showing Cached Data',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 0,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Offline Mode',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          print('Button pressed!');
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          'Retry',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               Padding(
@@ -238,7 +227,6 @@ class _UserListScreenState extends State<UserListScreen> {
                       await userProvider.fetchUsers();
                     } else {
                       await userProvider.loadCachedUsers();
-                      _showOfflineToast();
                     }
                   },
                   child: ListView.builder(
