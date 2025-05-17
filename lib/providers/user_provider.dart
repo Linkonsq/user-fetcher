@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:user_fetcher/models/user.dart';
 
 class UserProvider with ChangeNotifier {
@@ -11,6 +12,7 @@ class UserProvider with ChangeNotifier {
   bool _hasMore = true;
   String _searchQuery = '';
   String? _errorMessage;
+  static const String _cacheKey = 'cached_users';
 
   List<User> get users => _searchQuery.isEmpty ? _users : _filteredUsers;
   bool get isLoading => _isLoading;
@@ -43,6 +45,7 @@ class UserProvider with ChangeNotifier {
         } else {
           _users.addAll(fetchedUsers);
           _page++;
+          await _cacheUsers();
         }
       } else {
         final errorData = json.decode(response.body);
@@ -54,10 +57,49 @@ class UserProvider with ChangeNotifier {
       _errorMessage =
           'Failed to connect to the server. Please try again later.';
       _hasMore = false;
+      await loadCachedUsers(); // Load cached data when offline
     } finally {
       _isLoading = false;
       notifyListeners();
       _applySearch();
+    }
+  }
+
+  Future<void> loadCachedUsers() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedData = prefs.getString(_cacheKey);
+
+      if (cachedData != null) {
+        final List<dynamic> decodedData = json.decode(cachedData);
+        _users.clear();
+        _users.addAll(decodedData.map((json) => User.fromJson(json)).toList());
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading cached users: $e');
+    }
+  }
+
+  Future<void> _cacheUsers() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encodedData = json.encode(
+        _users
+            .map(
+              (user) => {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.firstName,
+                'last_name': user.lastName,
+                'avatar': user.avatar,
+              },
+            )
+            .toList(),
+      );
+      await prefs.setString(_cacheKey, encodedData);
+    } catch (e) {
+      debugPrint('Error caching users: $e');
     }
   }
 
