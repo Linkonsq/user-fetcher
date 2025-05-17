@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:user_fetcher/models/user.dart';
 import 'package:user_fetcher/providers/user_provider.dart';
 import 'user_detail_screen.dart';
 
@@ -18,11 +17,12 @@ class _UserListScreenState extends State<UserListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      userProvider.fetchUsers();
+      context.read<UserProvider>().fetchUsers();
     });
+
     _scrollController.addListener(() {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final userProvider = context.read<UserProvider>();
+
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
         if (userProvider.hasMore && !userProvider.isLoading) {
@@ -40,11 +40,38 @@ class _UserListScreenState extends State<UserListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
-        return Scaffold(
-          appBar: AppBar(title: const Text('Users')),
-          body: Column(
+    return Scaffold(
+      appBar: AppBar(title: const Text('Users')),
+      body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          if (userProvider.errorMessage != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(userProvider.errorMessage!),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 3),
+                  action: SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      userProvider.fetchUsers();
+                    },
+                  ),
+                ),
+              );
+            });
+          }
+
+          if (userProvider.users.isEmpty && userProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (userProvider.users.isEmpty) {
+            return const Center(child: Text('No users found'));
+          }
+
+          return Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -57,14 +84,26 @@ class _UserListScreenState extends State<UserListScreen> {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount:
-                      userProvider.users.length +
-                      (userProvider.hasMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index < userProvider.users.length) {
-                      User user = userProvider.users[index];
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await userProvider.fetchUsers();
+                  },
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount:
+                        userProvider.users.length +
+                        (userProvider.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == userProvider.users.length) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      final user = userProvider.users[index];
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(user.avatar),
@@ -82,19 +121,14 @@ class _UserListScreenState extends State<UserListScreen> {
                           );
                         },
                       );
-                    } else {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                  },
+                    },
+                  ),
                 ),
               ),
             ],
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

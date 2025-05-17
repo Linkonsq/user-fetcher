@@ -10,14 +10,17 @@ class UserProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _hasMore = true;
   String _searchQuery = '';
+  String? _errorMessage;
 
   List<User> get users => _searchQuery.isEmpty ? _users : _filteredUsers;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
+  String? get errorMessage => _errorMessage;
 
   Future<void> fetchUsers({bool loadMore = false}) async {
     if (_isLoading || !_hasMore) return;
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     if (!loadMore) {
@@ -26,27 +29,36 @@ class UserProvider with ChangeNotifier {
       _hasMore = true;
     }
 
-    final response = await http.get(
-      Uri.parse('https://reqres.in/api/users?per_page=10&page=$_page'),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('https://reqres.in/api/users?per_page=10&page=$_page'),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      List<User> fetchedUsers =
-          (data['data'] as List).map((json) => User.fromJson(json)).toList();
-      if (fetchedUsers.isEmpty) {
-        _hasMore = false;
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List<User> fetchedUsers =
+            (data['data'] as List).map((json) => User.fromJson(json)).toList();
+        if (fetchedUsers.isEmpty) {
+          _hasMore = false;
+        } else {
+          _users.addAll(fetchedUsers);
+          _page++;
+        }
       } else {
-        _users.addAll(fetchedUsers);
-        _page++;
+        final errorData = json.decode(response.body);
+        _errorMessage =
+            errorData['error'] ?? 'An error occurred while fetching users';
+        _hasMore = false;
       }
-    } else {
+    } catch (e) {
+      _errorMessage =
+          'Failed to connect to the server. Please try again later.';
       _hasMore = false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+      _applySearch();
     }
-
-    _isLoading = false;
-    notifyListeners();
-    _applySearch();
   }
 
   void searchUsers(String query) {
