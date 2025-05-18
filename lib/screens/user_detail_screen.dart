@@ -1,11 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:user_fetcher/providers/user_provider.dart';
+import 'package:user_fetcher/services/connectivity_service.dart';
 
 /// Screen that displays detailed information about a specific user
-class UserDetailScreen extends StatelessWidget {
+class UserDetailScreen extends StatefulWidget {
   final int userId;
   const UserDetailScreen({super.key, required this.userId});
+
+  @override
+  State<UserDetailScreen> createState() => _UserDetailScreenState();
+}
+
+class _UserDetailScreenState extends State<UserDetailScreen> {
+  final _connectivityService = ConnectivityService();
+  late bool _isConnected;
+
+  @override
+  void initState() {
+    super.initState();
+    _isConnected = _connectivityService.isConnected;
+    _connectivityService.checkConnectivity();
+    _connectivityService.setupConnectivityListener();
+    _connectivityService.connectionStatus.addListener(
+      _onConnectionStatusChanged,
+    );
+  }
+
+  void _onConnectionStatusChanged() {
+    setState(() {
+      _isConnected = _connectivityService.isConnected;
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivityService.connectionStatus.removeListener(
+      _onConnectionStatusChanged,
+    );
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +47,7 @@ class UserDetailScreen extends StatelessWidget {
     final user = Provider.of<UserProvider>(
       context,
       listen: false,
-    ).getUserById(userId);
+    ).getUserById(widget.userId);
 
     // Show error state if user is not found
     if (user == null) {
@@ -58,7 +92,11 @@ class UserDetailScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(user.avatar, fit: BoxFit.cover),
+                  _isConnected
+                      ? Image.network(user.avatar, fit: BoxFit.cover)
+                      : Image.asset(
+                        'assets/images/dummy_avatar_background.jpg',
+                      ),
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -87,7 +125,11 @@ class UserDetailScreen extends StatelessWidget {
                     child: Center(
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundImage: NetworkImage(user.avatar),
+                        backgroundImage:
+                            _isConnected
+                                ? NetworkImage(user.avatar)
+                                : AssetImage('assets/images/dummy_avatar.png')
+                                    as ImageProvider,
                       ),
                     ),
                   ),

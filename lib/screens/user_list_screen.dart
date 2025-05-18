@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:user_fetcher/providers/user_provider.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:user_fetcher/services/connectivity_service.dart';
 import 'user_detail_screen.dart';
 
 /// Main screen that displays a list of users with search and pagination functionality
@@ -15,7 +15,8 @@ class UserListScreen extends StatefulWidget {
 class _UserListScreenState extends State<UserListScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  bool _isConnected = true;
+  final _connectivityService = ConnectivityService();
+  late bool _isConnected;
 
   /// Fetches user data based on connectivity status
   void _fetchUsersData() {
@@ -30,8 +31,12 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   void initState() {
     super.initState();
-    _checkConnectivity();
-    _setupConnectivityListener();
+    _isConnected = _connectivityService.isConnected;
+    _connectivityService.checkConnectivity();
+    _connectivityService.setupConnectivityListener();
+    _connectivityService.connectionStatus.addListener(
+      _onConnectionStatusChanged,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchUsersData();
@@ -50,28 +55,20 @@ class _UserListScreenState extends State<UserListScreen> {
     });
   }
 
-  /// Checks the current internet connectivity status
-  Future<void> _checkConnectivity() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
+  void _onConnectionStatusChanged() {
     setState(() {
-      _isConnected = connectivityResult != ConnectivityResult.none;
+      _isConnected = _connectivityService.isConnected;
     });
-  }
-
-  /// Sets up a listener for connectivity changes
-  void _setupConnectivityListener() {
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      setState(() {
-        _isConnected = result != ConnectivityResult.none;
-      });
-      _fetchUsersData();
-    });
+    _fetchUsersData();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    _connectivityService.connectionStatus.removeListener(
+      _onConnectionStatusChanged,
+    );
     super.dispose();
   }
 
@@ -144,8 +141,8 @@ class _UserListScreenState extends State<UserListScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await _checkConnectivity();
-                      if (_isConnected) {
+                      await _connectivityService.checkConnectivity();
+                      if (_connectivityService.isConnected) {
                         context.read<UserProvider>().fetchUsers();
                       }
                     },
@@ -258,7 +255,13 @@ class _UserListScreenState extends State<UserListScreen> {
                             tag: 'user-avatar-${user.id}',
                             child: CircleAvatar(
                               radius: 30,
-                              backgroundImage: NetworkImage(user.avatar),
+                              backgroundImage:
+                                  _isConnected
+                                      ? NetworkImage(user.avatar)
+                                      : const AssetImage(
+                                            'assets/images/dummy_avatar.png',
+                                          )
+                                          as ImageProvider,
                             ),
                           ),
                           title: Text(
