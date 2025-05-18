@@ -83,6 +83,10 @@ class _UserListScreenState extends State<UserListScreen> {
               },
             ),
         ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
       ),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
