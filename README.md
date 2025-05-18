@@ -11,6 +11,21 @@ A Flutter application that fetches and displays user data from the Reqres.in API
 ✔️ Responsive UI for all screen sizes  
 ✔️ Local caching for offline support  
 
+## Tech Stack
+**Frontend:**  
+- Flutter
+- Dart
+
+**State Management:**  
+- Provider
+
+**API Client:**  
+- HTTP Package
+
+**Additional Packages:**
+- shared_preferences (for caching)  
+- device_preview (for responsive design testing)
+  
 ## **📸 Screenshots**
 <img src="https://github.com/user-attachments/assets/b2b05aab-5897-4de1-be51-7ff7226fc93e" alt="" width="300" />
 <img src="https://github.com/user-attachments/assets/778659f8-9d1e-49f6-a772-7ca0247b8dae" alt="" width="300" />
