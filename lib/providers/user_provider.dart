@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:user_fetcher/models/user.dart';
 
+/// Manages the state and data operations for users in the application
+/// Handles fetching, caching and searching user data
 class UserProvider with ChangeNotifier {
   final List<User> _users = [];
   List<User> _filteredUsers = [];
@@ -14,14 +16,17 @@ class UserProvider with ChangeNotifier {
   String? _errorMessage;
   static const String _cacheKey = 'cached_users';
 
+  // Getters for public access to private state
   List<User> get users => _searchQuery.isEmpty ? _users : _filteredUsers;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
   String? get errorMessage => _errorMessage;
 
+  /// Fetches users from the API with pagination support
   Future<void> fetchUsers({bool loadMore = false}) async {
     if (_isLoading) return;
 
+    // Reset state if this is not a load more request
     if (!loadMore) {
       _page = 1;
       _users.clear();
@@ -44,6 +49,7 @@ class UserProvider with ChangeNotifier {
         final data = json.decode(response.body);
         List<User> fetchedUsers =
             (data['data'] as List).map((json) => User.fromJson(json)).toList();
+
         if (fetchedUsers.isEmpty) {
           _hasMore = false;
         } else {
@@ -68,6 +74,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  /// Loads cached users from local storage
   Future<void> loadCachedUsers() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -84,6 +91,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  /// Caches the current user list to local storage
   Future<void> _cacheUsers() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -106,12 +114,14 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  /// Updates the search query and filters users accordingly
   void searchUsers(String query) {
     _searchQuery = query;
     _applySearch();
     notifyListeners();
   }
 
+  /// Applies the current search query to filter users
   void _applySearch() {
     if (_searchQuery.isEmpty) {
       _filteredUsers = [];
@@ -127,6 +137,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  /// Retrieves a specific user by their ID
   User? getUserById(int id) {
     try {
       return _users.firstWhere((user) => user.id == id);

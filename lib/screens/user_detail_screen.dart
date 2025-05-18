@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:user_fetcher/providers/user_provider.dart';
 
+/// Screen that displays detailed information about a specific user
 class UserDetailScreen extends StatelessWidget {
   final int userId;
   const UserDetailScreen({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
+    // Get specific user data from the provider
     final user = Provider.of<UserProvider>(
       context,
       listen: false,
     ).getUserById(userId);
 
+    // Show error state if user is not found
     if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('User Details')),
@@ -36,9 +39,11 @@ class UserDetailScreen extends StatelessWidget {
       );
     }
 
+    // Main content with user details
     return Scaffold(
       body: CustomScrollView(
         slivers: [
+          // Collapsing app bar with user's avatar as background
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
@@ -67,6 +72,8 @@ class UserDetailScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          // User details content
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -74,6 +81,7 @@ class UserDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
+                  // Hero animation for smooth avatar transition
                   Hero(
                     tag: 'user-avatar-${user.id}',
                     child: Center(
@@ -87,10 +95,7 @@ class UserDetailScreen extends StatelessWidget {
                   _buildInfoCard(
                     context,
                     title: 'Contact Information',
-                    children: [
-                      _buildInfoRow(Icons.email, 'Email', user.email),
-                      // Add more contact information if available
-                    ],
+                    children: [_buildInfoRow(Icons.email, 'Email', user.email)],
                   ),
                   const SizedBox(height: 16),
                   _buildInfoCard(
@@ -98,7 +103,6 @@ class UserDetailScreen extends StatelessWidget {
                     title: 'User Details',
                     children: [
                       _buildInfoRow(Icons.person, 'Full Name', user.fullName),
-                      // Add more user details if available
                     ],
                   ),
                 ],
@@ -110,6 +114,7 @@ class UserDetailScreen extends StatelessWidget {
     );
   }
 
+  /// Builds an information card with a title and a list of information rows
   Widget _buildInfoCard(
     BuildContext context, {
     required String title,
@@ -133,6 +138,7 @@ class UserDetailScreen extends StatelessWidget {
     );
   }
 
+  /// Builds a row of information with an icon, label and value
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),

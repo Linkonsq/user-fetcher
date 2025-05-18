@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import 'providers/user_provider.dart';
 import 'screens/user_list_screen.dart';
 
+/// Entry point of the application
+/// Initializes Flutter bindings and sets up the app with device preview and state management
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(
+    // Wrap the app with DevicePreview for responsive design testing
     DevicePreview(
       enabled: false,
       builder:
@@ -19,6 +22,8 @@ void main() {
   );
 }
 
+/// Root widget of the application
+/// Defines the app's theme and initial route
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -27,6 +32,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'User Fetcher',
+      // Define the app's theme with Material 3 design
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepPurple,
@@ -57,34 +63,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
+      // Set the initial screen to UserListScreen
       home: const UserListScreen(),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[const Text('User Fetcher')],
-        ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

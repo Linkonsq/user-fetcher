@@ -4,6 +4,7 @@ import 'package:user_fetcher/providers/user_provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'user_detail_screen.dart';
 
+/// Main screen that displays a list of users with search and pagination functionality
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
 
@@ -16,6 +17,7 @@ class _UserListScreenState extends State<UserListScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isConnected = true;
 
+  /// Fetches user data based on connectivity status
   void _fetchUsersData() {
     final userProvider = context.read<UserProvider>();
     if (_isConnected) {
@@ -35,6 +37,7 @@ class _UserListScreenState extends State<UserListScreen> {
       _fetchUsersData();
     });
 
+    // Setup infinite scroll functionality
     _scrollController.addListener(() {
       final userProvider = context.read<UserProvider>();
 
@@ -47,6 +50,7 @@ class _UserListScreenState extends State<UserListScreen> {
     });
   }
 
+  /// Checks the current internet connectivity status
   Future<void> _checkConnectivity() async {
     final connectivityResult = await Connectivity().checkConnectivity();
     setState(() {
@@ -54,6 +58,7 @@ class _UserListScreenState extends State<UserListScreen> {
     });
   }
 
+  /// Sets up a listener for connectivity changes
   void _setupConnectivityListener() {
     Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
@@ -76,11 +81,12 @@ class _UserListScreenState extends State<UserListScreen> {
       appBar: AppBar(
         title: const Text('Users'),
         actions: [
+          // Show offline indicator in app bar when disconnected
           if (!_isConnected)
             IconButton(
               icon: const Icon(Icons.wifi_off),
               onPressed: () {
-                _checkConnectivity();
+                //_checkConnectivity();
               },
             ),
         ],
@@ -91,6 +97,7 @@ class _UserListScreenState extends State<UserListScreen> {
       ),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
+          // Show error message if any
           if (userProvider.errorMessage != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -103,6 +110,7 @@ class _UserListScreenState extends State<UserListScreen> {
             });
           }
 
+          // Show loading indicator while fetching initial data
           if (userProvider.users.isEmpty && userProvider.isLoading) {
             return const Center(
               child: Column(
@@ -116,6 +124,7 @@ class _UserListScreenState extends State<UserListScreen> {
             );
           }
 
+          // Show offline message when no internet connection
           if (userProvider.users.isEmpty && !_isConnected) {
             return Center(
               child: Column(
@@ -148,6 +157,7 @@ class _UserListScreenState extends State<UserListScreen> {
             );
           }
 
+          // Show empty state when no users are found
           if (userProvider.users.isEmpty) {
             return Center(
               child: Column(
@@ -176,8 +186,10 @@ class _UserListScreenState extends State<UserListScreen> {
             );
           }
 
+          // Main content: Search bar and user list
           return Column(
             children: [
+              // Show offline mode banner when disconnected
               if (!_isConnected)
                 Container(
                   color: Colors.orange,
@@ -194,6 +206,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     ],
                   ),
                 ),
+              // Search bar
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
@@ -212,6 +225,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   onChanged: (value) => userProvider.searchUsers(value),
                 ),
               ),
+              // Scrollable list of users
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
@@ -224,6 +238,7 @@ class _UserListScreenState extends State<UserListScreen> {
                         userProvider.users.length +
                         (userProvider.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
+                      // Show loading indicator at the bottom while loading more
                       if (index == userProvider.users.length) {
                         return const Center(
                           child: Padding(
@@ -233,6 +248,7 @@ class _UserListScreenState extends State<UserListScreen> {
                         );
                       }
 
+                      // Build user list item
                       final user = userProvider.users[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
@@ -248,15 +264,14 @@ class _UserListScreenState extends State<UserListScreen> {
                           title: Text(
                             user.fullName,
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                           subtitle: Text(
                             user.email,
                             style: TextStyle(color: Colors.grey[600]),
                           ),
-                          trailing: const Icon(Icons.chevron_right),
                           onTap: () {
                             Navigator.push(
                               context,
