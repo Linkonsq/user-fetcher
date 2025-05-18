@@ -1,8 +1,9 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/user_provider.dart';
-import 'screens/user_list_screen.dart';
+import 'features/user/data/repositories/user_repository_impl.dart';
+import 'features/user/presentation/providers/user_provider.dart';
+import 'features/user/presentation/screens/user_list_screen.dart';
 
 /// Entry point of the application
 /// Initializes Flutter bindings and sets up the app with device preview and state management
@@ -15,7 +16,17 @@ void main() {
       enabled: false,
       builder:
           (context) => MultiProvider(
-            providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+            providers: [
+              Provider(create: (_) => UserRepositoryImpl()),
+              ChangeNotifierProxyProvider<UserRepositoryImpl, UserProvider>(
+                create:
+                    (context) =>
+                        UserProvider(context.read<UserRepositoryImpl>()),
+                update:
+                    (context, repository, previous) =>
+                        previous ?? UserProvider(repository),
+              ),
+            ],
             child: const MyApp(),
           ),
     ),
