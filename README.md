@@ -2,7 +2,7 @@
 
 A Flutter application that fetches and displays user data from the Reqres.in API with pagination, search functionality and detailed user views.
 
-## **✨ Features**
+## **✨ Features** 
 ✔️ User list with pagination (infinite scroll)  
 ✔️ User detail screen with comprehensive information  
 ✔️ Real-time search functionality  
@@ -10,25 +10,25 @@ A Flutter application that fetches and displays user data from the Reqres.in API
 ✔️ Error handling for various scenarios  
 ✔️ Responsive UI for all screen sizes  
 ✔️ Offline indicator
-✔️ Local caching for offline support
+✔️ Local caching for offline support  
 
 ## Tech Stack
-**Frontend:**
+**Frontend:**  
 - Flutter
 - Dart
 
-**State Management:**
+**State Management:**  
 - Provider
 
-**API Client:**
+**API Client:**  
 - HTTP Package
 
 **Additional Packages:**
-- shared_preferences (for caching)
+- shared_preferences (for caching)  
 - device_preview (for responsive design testing)
 
-## **⚙️ Installation**
-**Clone the repo**
+## **⚙️ Installation**  
+**Clone the repo**  
    ```sh
    git clone https://github.com/Linkonsq/user-fetcher.git
    cd user-fetcher
