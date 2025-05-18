@@ -55,10 +55,9 @@ class UserProvider with ChangeNotifier {
         _hasMore = false;
       }
     } catch (e) {
-      _errorMessage =
-          'Failed to connect to the server. Please try again later.';
+      _errorMessage = 'Failed to connect to the server. Try again later';
       _hasMore = false;
-      await loadCachedUsers(); // Load cached data when offline
+      await loadCachedUsers();
     } finally {
       _isLoading = false;
       notifyListeners();

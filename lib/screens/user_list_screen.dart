@@ -97,13 +97,6 @@ class _UserListScreenState extends State<UserListScreen> {
                   content: Text(userProvider.errorMessage!),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 3),
-                  action: SnackBarAction(
-                    label: 'Retry',
-                    textColor: Colors.white,
-                    onPressed: () {
-                      userProvider.fetchUsers();
-                    },
-                  ),
                 ),
               );
             });
@@ -168,6 +161,18 @@ class _UserListScreenState extends State<UserListScreen> {
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[600],
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (_isConnected) {
+                        context.read<UserProvider>().fetchUsers();
+                      } else {
+                        context.read<UserProvider>().loadCachedUsers();
+                      }
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
                   ),
                 ],
               ),
