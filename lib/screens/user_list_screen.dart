@@ -76,7 +76,14 @@ class _UserListScreenState extends State<UserListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Users'),
+        title: const Text(
+          'Users',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
         actions: [
           // Show offline indicator in app bar when disconnected
           if (!_isConnected)
@@ -87,10 +94,7 @@ class _UserListScreenState extends State<UserListScreen> {
               },
             ),
         ],
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
