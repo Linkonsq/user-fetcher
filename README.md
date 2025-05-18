@@ -17,6 +17,9 @@ A Flutter application that fetches and displays user data from the Reqres.in API
 - Flutter
 - Dart
 
+**Architecture:**
+- The project follows Clean Architecture principles
+
 **State Management:**  
 - Provider
 
