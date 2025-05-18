@@ -13,6 +13,7 @@ class UserListScreen extends StatefulWidget {
 
 class _UserListScreenState extends State<UserListScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   bool _isConnected = true;
 
   @override
@@ -64,6 +65,7 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -72,13 +74,12 @@ class _UserListScreenState extends State<UserListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Users'),
-        //leading: Icon(Icons.wifi_off),
         actions: [
           if (!_isConnected)
             IconButton(
               icon: const Icon(Icons.wifi_off),
               onPressed: () {
-                //_checkConnectivity();
+                _checkConnectivity();
               },
             ),
         ],
@@ -105,7 +106,16 @@ class _UserListScreenState extends State<UserListScreen> {
           }
 
           if (userProvider.users.isEmpty && userProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading users...'),
+                ],
+              ),
+            );
           }
 
           if (userProvider.users.isEmpty && !_isConnected) {
@@ -125,14 +135,15 @@ class _UserListScreenState extends State<UserListScreen> {
                     style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: () async {
                       await _checkConnectivity();
                       if (_isConnected) {
                         context.read<UserProvider>().fetchUsers();
                       }
                     },
-                    child: const Text('Retry'),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
                   ),
                 ],
               ),
@@ -140,82 +151,57 @@ class _UserListScreenState extends State<UserListScreen> {
           }
 
           if (userProvider.users.isEmpty) {
-            return const Center(child: Text('No users found'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No users found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
-
-          // if (userProvider.users.isEmpty) {
-          //   return Center(
-          //     child: Column(
-          //       mainAxisAlignment: MainAxisAlignment.center,
-          //       children: [
-          //         const Icon(Icons.wifi_off, size: 64, color: Colors.grey),
-          //         const SizedBox(height: 16),
-          //         const Text(
-          //           'No Data Available',
-          //           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          //         ),
-          //         const SizedBox(height: 8),
-          //         Text(
-          //           userProvider.isOffline
-          //               ? 'No cached data found'
-          //               : 'Please check your connection and try again',
-          //           style: const TextStyle(color: Colors.grey),
-          //         ),
-          //         const SizedBox(height: 16),
-          //         ElevatedButton(
-          //           onPressed: () async {
-          //             await _checkConnectivity();
-          //             if (_isConnected) {
-          //               userProvider.fetchUsers();
-          //             } else {
-          //               userProvider.loadCachedUsers();
-          //             }
-          //           },
-          //           child: const Text('Retry'),
-          //         ),
-          //       ],
-          //     ),
-          //   );
-          // }
 
           return Column(
             children: [
               if (!_isConnected)
                 Container(
                   color: Colors.orange,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 0,
-                  ),
-                  child: Row(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Icon(Icons.wifi_off, color: Colors.white, size: 16),
+                      SizedBox(width: 8),
                       Text(
-                        'Offline Mode',
+                        'Offline Mode - Showing cached data',
                         style: TextStyle(color: Colors.white),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () {
-                          print('Button pressed!');
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(color: Colors.white),
-                        ),
                       ),
                     ],
                   ),
                 ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(16.0),
                 child: TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Search by name',
-                    border: OutlineInputBorder(),
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search users...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        userProvider.searchUsers('');
+                      },
+                    ),
                   ),
                   onChanged: (value) => userProvider.searchUsers(value),
                 ),
@@ -231,6 +217,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   },
                   child: ListView.builder(
                     controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount:
                         userProvider.users.length +
                         (userProvider.hasMore ? 1 : 0),
@@ -238,29 +225,47 @@ class _UserListScreenState extends State<UserListScreen> {
                       if (index == userProvider.users.length) {
                         return const Center(
                           child: Padding(
-                            padding: EdgeInsets.all(8.0),
+                            padding: EdgeInsets.all(16.0),
                             child: CircularProgressIndicator(),
                           ),
                         );
                       }
 
                       final user = userProvider.users[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(user.avatar),
-                        ),
-                        title: Text(user.fullName),
-                        subtitle: Text(user.email),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      UserDetailScreen(userId: user.id),
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(12),
+                          leading: Hero(
+                            tag: 'user-avatar-${user.id}',
+                            child: CircleAvatar(
+                              radius: 30,
+                              backgroundImage: NetworkImage(user.avatar),
                             ),
-                          );
-                        },
+                          ),
+                          title: Text(
+                            user.fullName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Text(
+                            user.email,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        UserDetailScreen(userId: user.id),
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

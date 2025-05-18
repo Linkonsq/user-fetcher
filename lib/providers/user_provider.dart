@@ -34,6 +34,7 @@ class UserProvider with ChangeNotifier {
     try {
       final response = await http.get(
         Uri.parse('https://reqres.in/api/users?per_page=10&page=$_page'),
+        headers: {'x-api-key': 'reqres-free-v1'},
       );
 
       if (response.statusCode == 200) {
