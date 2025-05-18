@@ -88,7 +88,7 @@ class _UserListScreenState extends State<UserListScreen> {
           // Show offline indicator in app bar when disconnected
           if (!_isConnected)
             IconButton(
-              icon: const Icon(Icons.wifi_off),
+              icon: const Icon(Icons.wifi_off, color: Colors.white),
               onPressed: () {
                 //_checkConnectivity();
               },
