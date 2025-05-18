@@ -20,16 +20,19 @@ class UserProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<void> fetchUsers({bool loadMore = false}) async {
-    if (_isLoading || !_hasMore) return;
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    if (_isLoading) return;
 
     if (!loadMore) {
       _page = 1;
       _users.clear();
       _hasMore = true;
+    } else if (!_hasMore) {
+      return;
     }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
       final response = await http.get(

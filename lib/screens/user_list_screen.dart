@@ -16,6 +16,15 @@ class _UserListScreenState extends State<UserListScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isConnected = true;
 
+  void _fetchUsersData() {
+    final userProvider = context.read<UserProvider>();
+    if (_isConnected) {
+      userProvider.fetchUsers();
+    } else {
+      userProvider.loadCachedUsers();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -23,11 +32,7 @@ class _UserListScreenState extends State<UserListScreen> {
     _setupConnectivityListener();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isConnected) {
-        context.read<UserProvider>().fetchUsers();
-      } else {
-        context.read<UserProvider>().loadCachedUsers();
-      }
+      _fetchUsersData();
     });
 
     _scrollController.addListener(() {
@@ -54,11 +59,7 @@ class _UserListScreenState extends State<UserListScreen> {
       setState(() {
         _isConnected = result != ConnectivityResult.none;
       });
-      if (_isConnected) {
-        context.read<UserProvider>().fetchUsers();
-      } else {
-        context.read<UserProvider>().loadCachedUsers();
-      }
+      _fetchUsersData();
     });
   }
 
@@ -165,11 +166,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {
-                      if (_isConnected) {
-                        context.read<UserProvider>().fetchUsers();
-                      } else {
-                        context.read<UserProvider>().loadCachedUsers();
-                      }
+                      _fetchUsersData();
                     },
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
@@ -218,11 +215,7 @@ class _UserListScreenState extends State<UserListScreen> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    if (_isConnected) {
-                      await userProvider.fetchUsers();
-                    } else {
-                      await userProvider.loadCachedUsers();
-                    }
+                    _fetchUsersData();
                   },
                   child: ListView.builder(
                     controller: _scrollController,
