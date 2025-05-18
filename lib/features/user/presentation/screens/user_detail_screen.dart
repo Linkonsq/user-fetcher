@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:user_fetcher/providers/user_provider.dart';
-import 'package:user_fetcher/services/connectivity_service.dart';
+import '../../../../core/services/connectivity_service.dart';
+import '../../domain/entities/user.dart';
 
 /// Screen that displays detailed information about a specific user
 class UserDetailScreen extends StatefulWidget {
-  final int userId;
-  const UserDetailScreen({super.key, required this.userId});
+  final User user;
+
+  const UserDetailScreen({super.key, required this.user});
 
   @override
   State<UserDetailScreen> createState() => _UserDetailScreenState();
@@ -43,37 +43,6 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Get specific user data from the provider
-    final user = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    ).getUserById(widget.userId);
-
-    // Show error state if user is not found
-    if (user == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('User Details')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text(
-                'User not found',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Main content with user details
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -83,7 +52,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
-                user.fullName,
+                widget.user.fullName,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -93,10 +62,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   _isConnected
-                      ? Image.network(user.avatar, fit: BoxFit.cover)
+                      ? Image.network(widget.user.avatar, fit: BoxFit.cover)
                       : Image.asset(
-                        'assets/images/dummy_avatar_background.jpg',
-                      ),
+                          'assets/images/dummy_avatar_background.jpg',
+                          fit: BoxFit.cover,
+                        ),
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -121,15 +91,15 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   const SizedBox(height: 16),
                   // Hero animation for smooth avatar transition
                   Hero(
-                    tag: 'user-avatar-${user.id}',
+                    tag: 'user-avatar-${widget.user.id}',
                     child: Center(
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundImage:
-                            _isConnected
-                                ? NetworkImage(user.avatar)
-                                : AssetImage('assets/images/dummy_avatar.png')
-                                    as ImageProvider,
+                        backgroundImage: _isConnected
+                            ? NetworkImage(widget.user.avatar)
+                            : const AssetImage(
+                                'assets/images/dummy_avatar.png',
+                              ) as ImageProvider,
                       ),
                     ),
                   ),
@@ -137,14 +107,20 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   _buildInfoCard(
                     context,
                     title: 'Contact Information',
-                    children: [_buildInfoRow(Icons.email, 'Email', user.email)],
+                    children: [
+                      _buildInfoRow(Icons.email, 'Email', widget.user.email),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   _buildInfoCard(
                     context,
                     title: 'User Details',
                     children: [
-                      _buildInfoRow(Icons.person, 'Full Name', user.fullName),
+                      _buildInfoRow(
+                        Icons.person,
+                        'Full Name',
+                        widget.user.fullName,
+                      ),
                     ],
                   ),
                 ],

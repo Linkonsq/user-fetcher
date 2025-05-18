@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:user_fetcher/providers/user_provider.dart';
-import 'package:user_fetcher/services/connectivity_service.dart';
+import '../../../../core/services/connectivity_service.dart';
+import '../providers/user_provider.dart';
 import 'user_detail_screen.dart';
 
-/// Main screen that displays a list of users with search and pagination functionality
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
 
@@ -45,7 +44,6 @@ class _UserListScreenState extends State<UserListScreen> {
     // Setup infinite scroll functionality
     _scrollController.addListener(() {
       final userProvider = context.read<UserProvider>();
-
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
         if (userProvider.hasMore && !userProvider.isLoading && _isConnected) {
@@ -147,7 +145,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     onPressed: () async {
                       await _connectivityService.checkConnectivity();
                       if (_connectivityService.isConnected) {
-                        context.read<UserProvider>().fetchUsers();
+                        userProvider.fetchUsers();
                       }
                     },
                     icon: const Icon(Icons.refresh),
@@ -176,9 +174,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      _fetchUsersData();
-                    },
+                    onPressed: _fetchUsersData,
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
                   ),
@@ -207,7 +203,6 @@ class _UserListScreenState extends State<UserListScreen> {
                     ],
                   ),
                 ),
-              // Search bar
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
@@ -223,20 +218,17 @@ class _UserListScreenState extends State<UserListScreen> {
                       },
                     ),
                   ),
-                  onChanged: (value) => userProvider.searchUsers(value),
+                  onChanged: userProvider.searchUsers,
                 ),
               ),
               // Scrollable list of users
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () async {
-                    _fetchUsersData();
-                  },
+                  onRefresh: () async => _fetchUsersData(),
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount:
-                        userProvider.users.length +
+                    itemCount: userProvider.users.length +
                         (userProvider.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       // Show loading indicator at the bottom while loading more
@@ -259,13 +251,11 @@ class _UserListScreenState extends State<UserListScreen> {
                             tag: 'user-avatar-${user.id}',
                             child: CircleAvatar(
                               radius: 30,
-                              backgroundImage:
-                                  _isConnected
-                                      ? NetworkImage(user.avatar)
-                                      : const AssetImage(
-                                            'assets/images/dummy_avatar.png',
-                                          )
-                                          as ImageProvider,
+                              backgroundImage: _isConnected
+                                  ? NetworkImage(user.avatar)
+                                  : const AssetImage(
+                                      'assets/images/dummy_avatar.png',
+                                    ) as ImageProvider,
                             ),
                           ),
                           title: Text(
@@ -283,9 +273,9 @@ class _UserListScreenState extends State<UserListScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        UserDetailScreen(userId: user.id),
+                                builder: (context) => UserDetailScreen(
+                                  user: user,
+                                ),
                               ),
                             );
                           },
