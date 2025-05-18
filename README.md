@@ -1,16 +1,12 @@
-# user_fetcher
+# User List App
 
-A new Flutter project.
+A Flutter application that fetches and displays user data from the Reqres.in API with pagination, search functionality and detailed user views.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## **✨ Features** 
+✔️ User list with pagination (infinite scroll)  
+✔️ User detail screen with comprehensive information  
+✔️ Real-time search functionality  
+✔️ Pull-to-refresh  
+✔️ Error handling for various scenarios  
+✔️ Responsive UI for all screen sizes  
+✔️ Local caching for offline support  
